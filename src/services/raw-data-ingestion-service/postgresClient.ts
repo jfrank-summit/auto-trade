@@ -1,4 +1,4 @@
-import { Pool, type QueryResult } from "pg";
+import { Pool } from "pg";
 import config from "./config";
 import type { RawTrade } from "./types";
 
