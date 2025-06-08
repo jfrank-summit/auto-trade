@@ -3,12 +3,12 @@
 import dotenv from "dotenv";
 dotenv.config(); // Load environment variables from .env file
 
-import config from "./config"; // Load service configuration
+import config from "./config.ts"; // Load service configuration
 import {
   fetchLatestBlock,
   fetchSwapsFromTimestamp,
-} from "./fetchers/aerodromeFetcher";
-import type { Swap } from "./queries/aerodromeQueries";
+} from "./fetchers/aerodromeFetcher.ts";
+import type { Swap } from "./queries/aerodromeQueries.ts";
 
 console.log("🚀 Auto-Trade Raw Data Ingestion Service starting...");
 console.log("📊 Loaded config:", config); // Log the loaded config to verify

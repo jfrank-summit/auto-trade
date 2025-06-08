@@ -1,5 +1,5 @@
 // src/services/raw-data-ingestion-service/config.ts
-import type { ServiceConfig } from "./types"; // Assuming types.ts is in the same directory
+import type { ServiceConfig } from "./types.ts"; // Assuming types.ts is in the same directory
 
 // Helper function to get environment variables or throw an error if not set
 const getEnvVar = (name: string, defaultValue?: string): string => {

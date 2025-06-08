@@ -1,12 +1,12 @@
-import { graphQLClients } from "../graphqlClient";
-import type { RawTrade } from "../types";
+import { graphQLClients } from "../graphqlClient.ts";
+import type { RawTrade } from "../types.ts";
 import {
   GET_RECENT_SWAPS,
   GET_LATEST_BLOCK,
   type SwapsResponse,
   type MetaResponse,
   type Swap,
-} from "../queries/aerodromeQueries";
+} from "../queries/aerodromeQueries.ts";
 
 // Constants for fetching
 const BATCH_SIZE = 100; // Number of swaps to fetch per query
