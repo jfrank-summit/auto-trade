@@ -49,6 +49,10 @@ export type TokenPair = {
 export type ServiceConfig = {
   redisUrl: string;
   postgresUrl: string;
-  targetDexSubgraphUrl: string;
+  // Note: targetDexSubgraphUrl removed - we use GraphQL client with hardcoded endpoints
+
+  // Polling and batch configuration
+  pollingIntervalMs: number;
+  batchSize: number;
   // ... other configs
 };

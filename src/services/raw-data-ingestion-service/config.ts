@@ -18,10 +18,10 @@ const config: ServiceConfig = {
     "POSTGRES_URL",
     "postgresql://user:password@localhost:5432/autotrade_dev"
   ),
-  targetDexSubgraphUrl: getEnvVar("TARGET_DEX_SUBGRAPH_URL"), // No default, must be set
+
   // Add other config variables here as needed
-  // e.g., polling interval, batch sizes
-  // pollingIntervalMs: parseInt(getEnvVar("POLLING_INTERVAL_MS", "60000"), 10), // Default to 1 minute
+  pollingIntervalMs: parseInt(getEnvVar("POLLING_INTERVAL_MS", "60000"), 10), // Default to 1 minute
+  batchSize: parseInt(getEnvVar("BATCH_SIZE", "100"), 10), // Default to 100 swaps per batch
 };
 
 export default config;
