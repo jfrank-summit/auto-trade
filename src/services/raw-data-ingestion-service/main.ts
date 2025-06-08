@@ -20,7 +20,7 @@ const main = async () => {
     // - config.redisUrl
     // - config.postgresUrl
 
-    console.log("📡 Starting data fetching from Aerodrome...");
+    console.log("📡 Starting continuous data ingestion from Aerodrome...");
 
     // Get the latest block to understand current state
     const latestBlock = await fetchLatestBlock();
@@ -28,63 +28,68 @@ const main = async () => {
       `📊 Latest block: ${latestBlock.blockNumber} (${new Date(latestBlock.timestamp * 1000).toISOString()})`
     );
 
-    // Fetch recent swaps (last 24 hours)
-    const oneDayAgo = Math.floor(Date.now() / 1000) - 24 * 60 * 60;
+    // TODO: Get last processed timestamp from PostgreSQL checkpoint
+    // For now, start from 1 hour ago
+    let lastProcessedTimestamp = Math.floor(Date.now() / 1000) - 60 * 60;
     console.log(
-      `📈 Fetching swaps from last 24 hours (${new Date(oneDayAgo * 1000).toISOString()})...`
+      `🔄 Starting ingestion from: ${new Date(lastProcessedTimestamp * 1000).toISOString()}`
     );
 
-    const recentSwaps = await fetchSwapsFromTimestamp(oneDayAgo, 100);
-    console.log(`✅ Fetched ${recentSwaps.length} recent swaps`);
-
-    if (recentSwaps.length > 0) {
-      console.log("📝 Sample swap data:");
-      const sample = recentSwaps[0];
-      console.log(`   ${sample.dexId}: ${sample.tradeTimestamp.toISOString()}`);
-      console.log(`   TX: ${sample.transactionHash}`);
-      console.log(`   Trade: ${sample.amountIn} → ${sample.amountOut}`);
-      console.log(`   Price: ${sample.price}`);
-    } else {
-      console.log("⚠️  No recent swaps found, trying historical data...");
-
-      // Fallback to historical data for demonstration
-      const historicalTimestamp = 1729153055; // October 2024
-      const historicalSwaps = await fetchSwapsFromTimestamp(
-        historicalTimestamp,
-        10
-      );
-      console.log(
-        `📚 Fetched ${historicalSwaps.length} historical swaps for demonstration`
-      );
-
-      if (historicalSwaps.length > 0) {
-        const sample = historicalSwaps[0];
-        console.log("📝 Historical sample:");
-        console.log(
-          `   ${sample.dexId}: ${sample.tradeTimestamp.toISOString()}`
+    // Main ingestion loop
+    while (true) {
+      try {
+        // Fetch new swaps since last processed timestamp
+        const newSwaps = await fetchSwapsFromTimestamp(
+          lastProcessedTimestamp,
+          config.batchSize
         );
-        console.log(`   TX: ${sample.transactionHash}`);
-        const sourceSwap = sample.sourceData as Swap;
-        if (sourceSwap?.pool) {
-          console.log(
-            `   Tokens: ${sourceSwap.pool.token0.symbol}/${sourceSwap.pool.token1.symbol}`
+
+        if (newSwaps.length > 0) {
+          console.log(`📈 Processing ${newSwaps.length} new swaps...`);
+
+          // TODO: Process swaps in production:
+          // 1. Buffer in Redis for downstream processing
+          // 2. Store in PostgreSQL raw_trades table
+          // 3. Update checkpoint timestamp
+          // 4. Publish event to Data Aggregation Service
+
+          // For now, just log the activity
+          const latestSwap = newSwaps[newSwaps.length - 1];
+          lastProcessedTimestamp = Math.floor(
+            latestSwap.tradeTimestamp.getTime() / 1000
           );
+
           console.log(
-            `   Amount: ${sample.amountIn} ${sourceSwap.pool.token0.symbol} → ${sample.amountOut} ${sourceSwap.pool.token1.symbol}`
+            `✅ Processed ${newSwaps.length} swaps. Latest: ${latestSwap.tradeTimestamp.toISOString()}`
           );
+
+          // Show sample for monitoring
+          const sample = newSwaps[0];
+          const sourceSwap = sample.sourceData as Swap;
+          if (sourceSwap?.pool) {
+            console.log(
+              `   Sample: ${sample.amountIn} ${sourceSwap.pool.token0.symbol} → ${sample.amountOut} ${sourceSwap.pool.token1.symbol}`
+            );
+          }
+        } else {
+          console.log("📊 No new swaps found, waiting...");
         }
+
+        // Wait for polling interval before next fetch
+        console.log(
+          `⏱️  Waiting ${config.pollingIntervalMs / 1000}s for next poll...`
+        );
+        await new Promise((resolve) =>
+          setTimeout(resolve, config.pollingIntervalMs)
+        );
+      } catch (error) {
+        console.error("❌ Error in ingestion loop:", error);
+        console.log("🔄 Retrying in 30 seconds...");
+        await new Promise((resolve) => setTimeout(resolve, 30000));
       }
     }
-
-    // TODO: Process trades for Redis buffering and PostgreSQL storage
-    console.log("\n🔄 Next steps:");
-    console.log("   - Buffer trades in Redis for processing");
-    console.log("   - Store raw trades in PostgreSQL raw_trades table");
-    console.log("   - Signal Data Aggregation Service for bar generation");
-
-    console.log("\n✅ Raw Data Ingestion Service completed successfully");
   } catch (error) {
-    console.error("❌ Error in Raw Data Ingestion Service:", error);
+    console.error("❌ Fatal error in Raw Data Ingestion Service:", error);
     throw error;
   }
 };
