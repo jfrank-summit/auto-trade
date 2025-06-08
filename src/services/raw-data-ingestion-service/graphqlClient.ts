@@ -3,14 +3,16 @@ import { GraphQLClient } from "graphql-request";
 // Create GraphQL clients for each DEX subgraph
 // Using The Graph's decentralized network endpoints
 
-const GRAPH_NETWORK_BASE_URL = "https://api.thegraph.com/subgraphs/id/";
+// The Graph decentralized network gateway
+const GRAPH_GATEWAY_URL = "https://gateway-arbitrum.network.thegraph.com/api";
+
+// You need an API key from The Graph to use the decentralized network
+// Get one at: https://thegraph.com/studio/apikeys/
+const GRAPH_API_KEY = process.env.GRAPH_API_KEY || "[api-key]";
 
 // Subgraph IDs from our data acquisition plan
 const SUBGRAPH_IDS = {
-  aerodrome: "GENunSHWLBXm59mBSgPzQ8metBEp9YDfdqwFr91Av1UM",
-  sushiswap: "7Tbc4o9M99Si1x7yenGXmsbHyMgUTPKJU1GjDdaXzXK3",
-  baseswap: "BMK1YGMW7YzS8tgtiV97mh86VZHwASV8RjikPFqXQS3V",
-  // Uniswap subgraph ID to be determined
+  aerodrome: "DQghTXXyk34DvW8nTmXPUs4cXoALcjSAp8JiZcDW5tnJ", // Aerodrome Base with transactionIndex
 } as const;
 
 export type DexId = keyof typeof SUBGRAPH_IDS;
@@ -19,28 +21,26 @@ export type DexId = keyof typeof SUBGRAPH_IDS;
 export const createGraphQLClient = (dexId: DexId): GraphQLClient => {
   const subgraphId = SUBGRAPH_IDS[dexId];
   if (!subgraphId) {
-    throw new Error(`No subgraph ID configured for DEX: ${dexId}`);
+    throw new Error(`No subgraph ID found for DEX: ${dexId}`);
   }
 
-  const url = `${GRAPH_NETWORK_BASE_URL}${subgraphId}`;
+  // Construct the URL for the decentralized network with API key in path
+  const url = `${GRAPH_GATEWAY_URL}/${GRAPH_API_KEY}/subgraphs/id/${subgraphId}`;
+
   return new GraphQLClient(url, {
     headers: {
-      // Add any required headers here (e.g., API key if needed)
+      "Content-Type": "application/json",
     },
   });
 };
 
-// Export pre-configured clients for each DEX
+// Pre-configured clients for each DEX
 export const graphQLClients = {
   aerodrome: createGraphQLClient("aerodrome"),
-  sushiswap: createGraphQLClient("sushiswap"),
-  baseswap: createGraphQLClient("baseswap"),
+  // Add other DEX clients as needed when we have their subgraph IDs
 } as const;
 
-// Helper to get client by DEX ID string (useful for dynamic selection)
-export const getGraphQLClient = (dexId: string): GraphQLClient => {
-  if (!(dexId in graphQLClients)) {
-    throw new Error(`Invalid DEX ID: ${dexId}`);
-  }
-  return graphQLClients[dexId as DexId];
+// Helper to get all available DEX IDs
+export const getAvailableDexIds = (): DexId[] => {
+  return Object.keys(SUBGRAPH_IDS) as DexId[];
 };
