@@ -7,6 +7,10 @@
   "scripts": {
     "build": "tsc",
     "start:raw-ingestion": "ts-node src/services/raw-data-ingestion-service/main.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:integration": "vitest run --reporter=verbose",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write ."
   },
@@ -24,6 +28,7 @@
     "@types/pg": "^8.15.4",
     "@typescript-eslint/eslint-plugin": "^8.33.0",
     "@typescript-eslint/parser": "^8.33.0",
+    "@vitest/ui": "^3.2.2",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.1",
@@ -31,7 +36,8 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.0"
+    "typescript-eslint": "^8.33.0",
+    "vitest": "^3.2.2"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
